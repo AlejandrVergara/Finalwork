@@ -2,10 +2,10 @@ Package: finalworkr
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: person  ("ALEJANDRO" "Vergara", email= Josea.vergarar@ecci.edi.co)
+Maintainer: The package maintainer "ALEJANDRO" "Vergara"
+Description: In this final work we will apply everything we have studied during the semester, hoping to show the advances in machine learning and its different models.
+
+License: "use_mit_license"
 Encoding: UTF-8
 LazyData: true
