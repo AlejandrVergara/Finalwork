@@ -10,14 +10,13 @@ dataPt <-(DynamicCancerDriverKM::BRCA_PT)
 final_data <- bind_rows(datanormal, dataPt)
 
 
-# Calcula el porcentaje de valores menores a 10 en cada columna
 porcentaje_menor_10 <- final_data %>%
-  summarise_all(~ mean(. <100, na.rm = TRUE))
+  summarise_all(~ mean(. <600, na.rm = TRUE))
 
-# Filtra las columnas donde el 80% o más de los valores son menores a 10
+
 columnas_a_eliminar <- names(porcentaje_menor_10[, porcentaje_menor_10 >= 0.8])
 
-# Elimina las columnas seleccionadas
+
 final_data_filtrado <- final_data %>%
   select(-one_of(columnas_a_eliminar))
 
@@ -34,16 +33,21 @@ data_piinR <- data_piin %>%
   select(total_mode) %>%
   arrange(desc(total_mode))
 
-# Mostrar el resultado
+
 print(data_piinR)
+
+final_data_filtradox<-colnames(final_data_filtrado)[ 8:ncol(final_data_filtrado)]
+aux2 <- AMCBGeneUtils::changeGeneId(final_data_filtradox, from = "Ensembl.ID")
+
+names(final_data_filtrado)[8:ncol(final_data_filtrado)] <- aux2$HGNC.symbol
+
 
 genes_en_final_data <- colnames(final_data_filtrado)
 
-# Filtrar data_piinR para mantener solo los genes que están en final_data_filtrado
+
 data_piinR_filtrado <- data_piinR %>%
   filter(gen %in% genes_en_final_data)
 
-# Mostrar el resultado
-print(data_piinR_filtrado)
+Predictores<- head(data_piinR_filtrado[, 1], 100)
 
-view(genes_en_final_data)
+
