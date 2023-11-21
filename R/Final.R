@@ -49,6 +49,7 @@ names(final_data_filtrado)[8:ncol(final_data_filtrado)] <- aux2$HGNC.symbol
 
 
 genes_en_final_data <- colnames(final_data_filtrado)
+genes_en_final_data2 <- colnames(final_data_filtrado)
 
 
 data_piinR_filtrado <- data_piinR %>%
@@ -229,13 +230,47 @@ geneScore2<- geneScore%>%arrange(desc(score))
 
 score_column <- geneScore2$features
 
-# Aplica la función changeGeneId a la columna "score"
-aux2 <- AMCBGeneUtils::changeGeneId(score_column, from = "Ensembl.ID")
+# Obtén la columna "features" de geneScore2
+features_column <- geneScore2$features
 
-# Cambia los nombres de las filas en geneScore2
-rownames(geneScore2) <- aux2$HGNC.symbol
+# Aplica la función changeGeneId a los valores de la columna "features"
+geneScore2$features <- AMCBGeneUtils::changeGeneId(features_column, from = "Ensembl.ID")$HGNC.symbol
 
-predictores_2 <- head(aux2$HGNC.symbol, 100)
+geneScore2_filtrado <- geneScore2 %>%
+  filter(features %in% genes_en_final_data2)
 
-# Asigna los valores a Predictores 2
-Predictores_2 <- as.character(predictores_2)
+Predictores_2 <- head(geneScore2_filtrado$features, 100)
+
+# Convierte a caracteres si es necesario
+Predictores_2 <- as.character(Predictores_2)
+
+final_data_filtradoe2 <- final_data_filtrado %>%
+  group_by(sample_type) %>%
+  sample_n(123, replace = TRUE) %>%
+  ungroup()
+
+sample.index <- sample(1:nrow(final_data_filtradoe2), nrow(final_data_filtradoe2) * 0.7, replace = FALSE)
+
+train.data <- final_data_filtradoe2[sample.index, c(Predictores_2, "sample_type"), drop = FALSE]
+test.data <- final_data_filtradoe2[-sample.index, c(Predictores_2, "sample_type"), drop = FALSE]
+
+train.data$sample_type <- factor(train.data$sample_type)
+test.data$sample_type <- factor(test.data$sample_type)
+
+# Train the k-NN model
+ctrl <- trainControl(method = "cv", p = 0.7)
+knnFit <- train(sample_type ~ .,
+                data = train.data,
+                method = "knn",
+                trControl = ctrl,
+                preProcess = c("range"),  # c("center", "scale") for z-score
+                tuneLength = 50)
+
+# Plot k-NN model
+plot(knnFit)
+
+# Make predictions with k-NN
+knnPredict <- predict(knnFit, newdata = test.data)
+
+# Create the confusion matrix for k-NN
+confusionMatrix(data = knnPredict, reference = test.data$sample_type)
