@@ -50,62 +50,93 @@ genes_en_final_data <- colnames(final_data_filtrado)
 data_piinR_filtrado <- data_piinR %>%
   filter(gen %in% genes_en_final_data)
 
-Predictores <- as.vector(head(data_piinR_filtrado[, 1], 100))
+#knn model
 
+# k-NN model
+Predictores <- as.vector(head(data_piinR_filtrado[, 1], 100))
 Predictores <- as.character(unlist(Predictores))
 
 colnames(final_data_filtrado)[is.na(colnames(final_data_filtrado))] <- paste0("gen", seq_along(colnames(final_data_filtrado) == ""))
 set.seed(1)
+
 final_data_filtradoe <- final_data_filtrado %>%
   group_by(sample_type) %>%
   sample_n(123, replace = TRUE) %>%
   ungroup()
 
-sample.index <- sample(1:nrow(final_data_filtradoe)
-                       ,nrow(final_data_filtradoe)*0.7
-                       ,replace = F)
+sample.index <- sample(1:nrow(final_data_filtradoe), nrow(final_data_filtradoe) * 0.7, replace = FALSE)
 
 train.data <- final_data_filtradoe[sample.index, c(Predictores, "sample_type"), drop = FALSE]
 test.data <- final_data_filtradoe[-sample.index, c(Predictores, "sample_type"), drop = FALSE]
-
 
 train.data$sample_type <- factor(train.data$sample_type)
 test.data$sample_type <- factor(test.data$sample_type)
 
 # Train the k-NN model
 ctrl <- trainControl(method = "cv", p = 0.7)
-knnFit <- train(sample_type ~ .
-                , data = train.data
-                , method = "knn", trControl = ctrl
-                , preProcess = c("range") # c("center", "scale") for z-score
-                , tuneLength = 50)
+knnFit <- train(sample_type ~ .,
+                data = train.data,
+                method = "knn",
+                trControl = ctrl,
+                preProcess = c("range"),  # c("center", "scale") for z-score
+                tuneLength = 50)
 
+# Plot k-NN model
 plot(knnFit)
 
-# Make predictions
+# Make predictions with k-NN
 knnPredict <- predict(knnFit, newdata = test.data)
 
-# Creates the confusion matrix
+# Create the confusion matrix for k-NN
 confusionMatrix(data = knnPredict, reference = test.data$sample_type)
 
+# Linear regression
 
-#regresion lineal
 final_data_filtradoe <- final_data_filtradoe %>%
-  mutate(sample_type = ifelse(sample_type == "Solid Tissue Normal", 0, 1))
+  mutate(sample_type = ifelse(sample_type == "Solid Tissue Normal", 1, 0))
 
 train.data <- final_data_filtradoe[sample.index, c(Predictores, "sample_type"), drop = FALSE]
 test.data <- final_data_filtradoe[-sample.index, c(Predictores, "sample_type"), drop = FALSE]
 
+# Fit linear regression model
 ins_model <- lm(sample_type ~ ., data = train.data)
 
+# Summary of linear regression model
 summary(ins_model)
 
-
-# Train the model
-train.control <- trainControl(method = "cv", number = 10 )
-model <- train(sample_type ~ ., data = train.data, method = "lm",
+# Train the linear regression model
+train.control <- trainControl(method = "cv", number = 10)
+model <- train(sample_type ~ .,
+               data = train.data,
+               method = "lm",
                trControl = train.control)
 
-# Summarize the results
-
+# Summarize the results of linear regression model
 print(model)
+
+fit <- rpart(sample_type ~ .,
+             method = "anova",
+             data = final_data_filtradoe[, c(Predictores, "sample_type")],
+control = rpart.control(xval = 10))
+
+# Print the decision tree
+print(fit)
+
+# Plot the decision tree
+rpart.plot::rpart.plot(fit)
+
+fit.rf <- randomForest(sample_type ~ .,
+                       data = final_data_filtradoe[, c(Predictores, "sample_type")])
+prediction.rf <- predict(fit.rf, test.data)
+table(test.data$sample_type, prediction.rf)
+
+
+fit.rf <- randomForest(sample_type ~ .,
+                       data = final_data_filtradoe[, c(Predictores, "sample_type")])
+
+
+prediction.rf <- predict(fit.rf, test.data)
+output <- data.frame(Actual = test.data$sample_type, Predicted = prediction.rf)
+RMSE = sqrt(sum((output$Actual - output$Predicted)^2) / nrow(output))
+
+print(head(output))
