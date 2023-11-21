@@ -4,6 +4,9 @@ library(class)
 library(gmodels)
 library(psych)
 library(DynamicCancerDriverKM)
+library(rpart)
+library(randomForest)
+
 
 datanormal <-(DynamicCancerDriverKM::BRCA_normal)
 dataPt <-(DynamicCancerDriverKM::BRCA_PT)
@@ -140,3 +143,75 @@ output <- data.frame(Actual = test.data$sample_type, Predicted = prediction.rf)
 RMSE = sqrt(sum((output$Actual - output$Predicted)^2) / nrow(output))
 
 print(head(output))
+
+
+################################################
+
+library(e1071)
+library(kernlab)
+library(caret)
+library(ggplot2)
+library(RColorBrewer)
+
+# Convierte la variable de respuesta a factor si no lo está
+final_data_filtradoe$sample_type <- as.factor(final_data_filtradoe$sample_type)
+
+# Divide los datos en conjuntos de entrenamiento y prueba
+set.seed(123)
+sample.index <- sample(1:nrow(final_data_filtradoe), nrow(final_data_filtradoe) * 0.7, replace = FALSE)
+train.data <- final_data_filtradoe[sample.index, c(Predictores, "sample_type"), drop = FALSE]
+test.data <- final_data_filtradoe[-sample.index, c(Predictores, "sample_type"), drop = FALSE]
+
+# Realiza la búsqueda de hiperparámetros con e1071
+tune.out <- tune(svm,
+                 sample_type ~ .,
+                 data = train.data,
+                 kernel = "linear",
+                 ranges = list(cost = c(0.001, 0.01, 0.1, 1, 5, 10, 100)))
+
+# Extrae el mejor modelo
+bestmod <- tune.out$best.model
+
+# Configura el modelo SVM con un kernel lineal utilizando los mejores hiperparámetros
+svm_model <- svm(sample_type ~ ., data = train.data, kernel = "linear", cost = bestmod[["cost"]])
+
+# Realiza predicciones en el conjunto de prueba
+svm_predict <- predict(svm_model, newdata = test.data)
+
+# Evalúa el rendimiento del modelo
+
+confusionMatrix(data = svm_predict, reference = test.data$sample_type)
+
+
+# Realiza la búsqueda de hiperparámetros con e1071
+tune.out <- tune(svm,
+                 sample_type ~ .,
+                 data = train.data,
+                 kernel = "radial",
+                 ranges = list(cost = c(0.001, 0.01, 0.1, 1, 5, 10, 100)))
+
+bestmod <- tune.out$best.model
+
+svm_model <- svm(sample_type ~ ., data = train.data, kernel = "radial", cost = bestmod[["cost"]])
+# Realiza predicciones en el conjunto de prueba
+svm_predict <- predict(svm_model, newdata = test.data)
+
+# Evalúa el rendimiento del modelo
+library(caret)
+confusionMatrix(data = svm_predict, reference = test.data$sample_type)
+
+# Realiza la búsqueda de hiperparámetros con e1071
+tune.out <- tune(svm,
+                 sample_type ~ .,
+                 data = train.data,
+                 kernel = "sigmoid",
+                 ranges = list(cost = c(0.001, 0.01, 0.1, 1, 5, 10, 100)))
+
+bestmod <- tune.out$best.model
+
+svm_model <- svm(sample_type ~ ., data = train.data, kernel = "sigmoid", cost = bestmod[["cost"]])
+# Realiza predicciones en el conjunto de prueba
+svm_predict <- predict(svm_model, newdata = test.data)
+
+# Evalúa el rendimiento del modelo
+confusionMatrix(data = svm_predict, reference = test.data$sample_type)
