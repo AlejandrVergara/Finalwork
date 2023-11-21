@@ -6,6 +6,7 @@ library(psych)
 library(DynamicCancerDriverKM)
 library(rpart)
 library(randomForest)
+library(e1071)
 
 
 datanormal <-(DynamicCancerDriverKM::BRCA_normal)
@@ -14,7 +15,7 @@ final_data <- bind_rows(datanormal, dataPt)
 
 
 porcentaje_menor_10 <- final_data %>%
-  summarise_all(~ mean(. <600, na.rm = TRUE))
+  summarise_all(~ mean(. <700, na.rm = TRUE))
 
 
 columnas_a_eliminar <- names(porcentaje_menor_10[, porcentaje_menor_10 >= 0.8])
@@ -147,11 +148,6 @@ print(head(output))
 
 ################################################
 
-library(e1071)
-library(kernlab)
-library(caret)
-library(ggplot2)
-library(RColorBrewer)
 
 # Convierte la variable de respuesta a factor si no lo está
 final_data_filtradoe$sample_type <- as.factor(final_data_filtradoe$sample_type)
@@ -215,3 +211,31 @@ svm_predict <- predict(svm_model, newdata = test.data)
 
 # Evalúa el rendimiento del modelo
 confusionMatrix(data = svm_predict, reference = test.data$sample_type)
+
+
+############Segunda parte
+folder<-dirname(rstudioapi::getSourceEditorContext()$path)
+parentFolder <-dirname(folder)
+
+DataBulk <- file.path(parentFolder, "DataBulk/ExperimentsBulk.rdata")
+load(DataBulk)
+ls()
+
+geneScore <- results[["ENSG00000145675"]][["geneScore"]]
+
+View(geneScore)
+
+geneScore2<- geneScore%>%arrange(desc(score))
+
+score_column <- geneScore2$features
+
+# Aplica la función changeGeneId a la columna "score"
+aux2 <- AMCBGeneUtils::changeGeneId(score_column, from = "Ensembl.ID")
+
+# Cambia los nombres de las filas en geneScore2
+rownames(geneScore2) <- aux2$HGNC.symbol
+
+predictores_2 <- head(aux2$HGNC.symbol, 100)
+
+# Asigna los valores a Predictores 2
+Predictores_2 <- as.character(predictores_2)
