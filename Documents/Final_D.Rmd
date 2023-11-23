@@ -1,6 +1,6 @@
 ---
 title: "Final Work"
-author: "Alejandro Vergara Rincon 81190-Jennyfer Torres 84031"
+author: "Alejandro Vergara Rincon 81190-Jennyfer Torres 84031  Juan Sebastian Gonzales 82144" 
 date: "2023-11-13"
 output:
   pdf_document: default
@@ -976,6 +976,11 @@ confusionMatrix(data = svm_predict, reference = test.data$sample_type)
 
 ## Second part.
 
+In this second part, we do the same process of applying the different
+models, but in this case we run the bulkdata demo of the
+DynamicCancerDriverKM package to obtain a result where we will find the
+gene:\_score of other genes to evaluate.
+
 ```{r echo=TRUE, results='hide', message=FALSE, warning=FALSE}
 
 folder<-dirname(rstudioapi::getSourceEditorContext()$path)
@@ -1170,79 +1175,141 @@ confusionMatrix(data = svm_predict, reference = test.data$sample_type)
 
 ```
 
-### **k-NN:**
+**k-NN (k-Nearest Neighbors):**
 
--   **Accuracy:** 94.59%
+Results:
 
--   **Sensitivity (True Positive Rate):** 88.24%
+·         Accuracy: 94.59%
 
--   **Specificity (True Negative Rate):** 100%
+·         Sensitivity (Recall) for "Primary Tumor" class: 88.24%
 
--   **Precision (Positive Predictive Value):** 100%
+·         Specificity: 100%
 
--   **Kappa:** 89.02%
+·         Positive Predictive Value (PPV): 100%
 
-### **Linear Regression:**
+·         Negative Predictive Value (NPV): 90.91%
 
--   **RMSE:** 0.6942686
+·         Kappa: 0.8902
 
--   **Rsquared:** 0.3454863
+**Linear Regression:**
 
--   **MAE (Mean Absolute Error):** 0.4360342
+Results:
 
-### **Decision Trees:**
+·         **Adjusted R-squared: 0.9009**
 
--   Decision Tree structure is presented, but specific metrics are not
-    available.
+·         **Residual Standard Error: 0.1577**
 
-### **Random Forest:**
+**Decision Tree:**
 
--   **Accuracy:** 100% (Note: This may indicate overfitting, as perfect
-    accuracy is unusual)
+Results:
 
-### **Support Vector Machines (SVM) - Linear Kernel:**
+·         Accuracy: 98.65%
 
--   **Accuracy:** 95.95%
+·         Sensitivity: 100%
 
--   **Sensitivity:** 96.97%
+·         Specificity: 97.56%
 
--   **Specificity:** 95.12%
+**Support Vector Machines (SVM):**
 
--   **Precision:** 94.12%
+**Linear Kernel:**
 
--   **Kappa:** 91.82%
+·         Accuracy: 95.95%
 
-### **Support Vector Machines (SVM) - Radial Kernel:**
+·         Sensitivity: 96.97%
 
--   **Accuracy:** 98.65%
+·         Specificity: 95.12%
 
--   **Sensitivity:** 100%
+**Radial Kernel:**
 
--   **Specificity:** 97.56%
+·         Accuracy: 98.65%
 
--   **Precision:** 97.06%
+·         Sensitivity: 100%
 
--   **Kappa:** 97.27%
+·         Specificity: 97.56%
 
-### **Support Vector Machines (SVM) - Sigmoidal Kernel:**
+**Sigmoidal Kernel:**
 
--   **Accuracy:** 95.95%
+·         Accuracy: 95.95%
 
--   **Sensitivity:** 96.97%
+·         Sensitivity: 96.97%
 
--   **Specificity:** 95.12%
+·         Specificity: 95.12%
 
--   **Precision:** 94.12%
+All models show good performance.
 
--   **Kappa:** 91.82%
+The decision tree and SVM with a radial kernel show high accuracy and
+sensitivity. Decision tree provides interpretability, while SVMs offer
+competitive accuracy.
 
-### **Summary:**
+## Conclusions
 
--   Random Forest achieved perfect accuracy, but this might be a result
-    of overfitting.
+**(1)** In the study ¨ Serum thymidine kinase 1 activity in breast
+cancer¨ (Nisman et al., 2010) **TK1** gene activity was evaluated in 161
+patients with primary invasive breast cancer, analyzing its association
+with various clinicopathological features and its prognostic impact in
+terms of recurrence-free survival. The results revealed significantly
+elevated TK1 activity compared to healthy women, supporting previous
+findings. Linear regression models and decision trees resulted in the
+**TK1** gene being an indicator for breast cancer assessment and
+prognosis.
 
--   SVM with the radial kernel performed very well with high accuracy,
-    sensitivity, specificity, and precision.
+**(2)** Based on the results obtained from the analyzed models, it is
+highlighted that the SKIL gene has emerged as a significant predictor in
+the decision tree model. This finding was supported by the linear
+regression model, reinforcing the validity of SKIL as a key predictor
+for breast cancer. Furthermore, the association of SKIL as an early
+marker for breast cancer is corroborated in the article 'miR-574-5p
+attenuates proliferation, migration, and EMT in triple-negative breast
+cancer cells by targeting BCL11A and SOX2 to inhibit the SKIL/TAZ/CTGF
+axis'. This study supports the clinical relevance of SKIL and provides a
+scientific basis for considering its utility as an early marker in the
+context of breast cancer." However, further testing of these models is
+needed to determine the effectiveness of this gene as a predictor.
 
--   k-NN and linear regression, while respectable, did not outperform
-    SVM in terms of accuracy and other metrics.
+**(3)**After an in-depth analysis of the models, a compelling link has
+emerged between certain genes and breast cancer, particularly
+highlighting the significance of TK1 and SKIL. The models consistently
+underscored the importance of SKIL, a finding that aligns with existing
+scientific literature.
+
+In essence, these models present a promising avenue for the early
+detection of cancer cells, with TK1 and SKIL identified as potential key
+players in breast cancer diagnosis and prognosis. However, it is crucial
+to exercise caution and acknowledge that the clinical application of
+these models demands further validation and consideration of additional
+clinical and biological factors.
+
+**References**
+
+1.  Nasteski, V. (2017). An overview of the supervised machine learning
+    methods. *Horizonti. Serija B. Prirodno-matematički,
+    tehničko-tehnološki, biotehnički, medicinski nauki i zdravstvo*, 4,
+    51-62. <https://doi.org/10.20544/horizons.b.04.1.17.p05>
+
+2.  Statistics - (Univariate\|Simple\|Basic) linear regression. (2021, 6
+    abril). *Datacadamia - Data and Co.*
+    <https://datacadamia.com/data_mining/simple_regression>
+
+3.  Lin, C.-J., Weng, R. C., & Keerthi, S. S. (2008). Trust region
+    Newton method for large-scale logistic regression. In *Journal of
+    Machine Learning Research*, 9.
+
+4.  IBM documentation. (s. f.).
+    <https://www.ibm.com/docs/es/spss-modeler/saas?topic=models-how-svm-works>
+
+5.  GeeksforGeeks. (2023, 31 agosto). *ML Underfitting and overfitting.*
+    <https://www.geeksforgeeks.org/underfitting-and-overfitting-in-machine-learning/>
+
+6.  Team, D. (2023, 30 octubre). *Cross-Validation : Definición e
+    importancia en Machine learning.* *Formation Data Science \|
+    DataScientest.com.*
+    <https://datascientest.com/es/cross-validation-definicion-e-importancia>
+
+7.  Nisman, Benjamin et al. \'Serum Thymidine Kinase 1 Activity in
+    Breast Cancer\'. 1 Jan. 2010 : 65 -- 72.
+
+8.  Zhang, K., Hu, Y., Luo, N., Li, X., Chen, F., Yuan, J., & Guo, L.
+    (2020). miR‑574‑5p attenuates proliferation, migration and EMT in
+    triple‑negative breast cancer cells by targeting BCL11A and SOX2 to
+    inhibit the SKIL/TAZ/CTGF axis. International Journal of Oncology,
+    56, 1240-1251. <https://doi.org/10.3892/ijo.2020.4995>
