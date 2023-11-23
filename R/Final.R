@@ -14,11 +14,11 @@ dataPt <-(DynamicCancerDriverKM::BRCA_PT)
 final_data <- bind_rows(datanormal, dataPt)
 
 
-porcentaje_menor_10 <- final_data %>%
+porcentajemenor <- final_data %>%
   summarise_all(~ mean(. <700, na.rm = TRUE))
 
 
-columnas_a_eliminar <- names(porcentaje_menor_10[, porcentaje_menor_10 >= 0.8])
+columnas_a_eliminar <- names(porcentajemenor[, porcentajemenor >= 0.8])
 
 
 final_data_filtrado <- final_data %>%
@@ -40,8 +40,6 @@ data_piinR <- data_piin %>%
   arrange(desc(total_mode))
 
 
-print(data_piinR)
-
 final_data_filtradox<-colnames(final_data_filtrado)[ 8:ncol(final_data_filtrado)]
 aux2 <- AMCBGeneUtils::changeGeneId(final_data_filtradox, from = "Ensembl.ID")
 
@@ -55,12 +53,11 @@ genes_en_final_data2 <- colnames(final_data_filtrado)
 data_piinR_filtrado <- data_piinR %>%
   filter(gen %in% genes_en_final_data)
 
-#knn model
 
-# k-NN model
 Predictores <- as.vector(head(data_piinR_filtrado[, 1], 100))
 Predictores <- as.character(unlist(Predictores))
 
+#knn model
 colnames(final_data_filtrado)[is.na(colnames(final_data_filtrado))] <- paste0("gen", seq_along(colnames(final_data_filtrado) == ""))
 set.seed(1)
 
@@ -119,6 +116,7 @@ model <- train(sample_type ~ .,
 # Summarize the results of linear regression model
 print(model)
 
+
 ##arboles de decision
 
 fit <- rpart(sample_type ~ .,
@@ -131,6 +129,17 @@ print(fit)
 
 # Plot the decision tree
 rpart.plot::rpart.plot(fit)
+
+predictions <- predict(fit, newdata = test.data)
+
+# Crear la matriz de confusión
+confusion_matrix <- table(observado = test.data$sample_type, predicho = predictions)
+
+# Visualizar la matriz de confusión
+print(confusion_matrix)
+
+##### random Forest
+final_data_filtradoe$sample_type <- as.factor(final_data_filtradoe$sample_type)
 
 fit.rf <- randomForest(sample_type ~ .,
                        data = final_data_filtradoe[, c(Predictores, "sample_type")])
@@ -147,16 +156,13 @@ output <- data.frame(Actual = test.data$sample_type, Predicted = prediction.rf)
 RMSE = sqrt(sum((output$Actual - output$Predicted)^2) / nrow(output))
 
 print(head(output))
-
+print(RMSE)
 
 ################################################
-
-
-
 final_data_filtradoe$sample_type <- as.factor(final_data_filtradoe$sample_type)
 
 
-set.seed(123)
+set.seed(3)
 sample.index <- sample(1:nrow(final_data_filtradoe), nrow(final_data_filtradoe) * 0.7, replace = FALSE)
 train.data <- final_data_filtradoe[sample.index, c(Predictores, "sample_type"), drop = FALSE]
 test.data <- final_data_filtradoe[-sample.index, c(Predictores, "sample_type"), drop = FALSE]
@@ -181,7 +187,7 @@ svm_predict <- predict(svm_model, newdata = test.data)
 
 confusionMatrix(data = svm_predict, reference = test.data$sample_type)
 
-plot(svm_model,data= test.data)
+
 
 tune.out <- tune(svm,
                  sample_type ~ .,
@@ -316,10 +322,19 @@ fit <- rpart(sample_type ~ .,
 print(fit)
 
 # Plot the decision tree
-rpart.plot::rpart.plot(fit)
+rpart.plot::rpart.plot(fit,main = "Original Tree")
 
-###### Bosques aleatorios
 
+predictions <- predict(fit, newdata = test.data)
+
+# Crear la matriz de confusión
+confusion_matrix <- table(observado = test.data$sample_type, predicho = predictions)
+
+# Visualizar la matriz de confusión
+print(confusion_matrix)
+
+#### bosques
+final_data_filtradoe2$sample_type <- as.factor(final_data_filtradoe2$sample_type)
 fit.rf <- randomForest(sample_type ~ .,
                        data = final_data_filtradoe2[, c(Predictores, "sample_type")])
 prediction.rf <- predict(fit.rf, test.data)
@@ -342,7 +357,7 @@ print(head(output))
 final_data_filtradoe2$sample_type <- as.factor(final_data_filtradoe2$sample_type)
 
 
-set.seed(123)
+set.seed(3)
 sample.index <- sample(1:nrow(final_data_filtradoe2), nrow(final_data_filtradoe2) * 0.7, replace = FALSE)
 train.data <- final_data_filtradoe2[sample.index, c(Predictores, "sample_type"), drop = FALSE]
 test.data <- final_data_filtradoe2[-sample.index, c(Predictores, "sample_type"), drop = FALSE]
@@ -367,7 +382,6 @@ svm_predict <- predict(svm_model, newdata = test.data)
 
 confusionMatrix(data = svm_predict, reference = test.data$sample_type)
 
-plot(svm_model,data= test.data)
 
 tune.out <- tune(svm,
                  sample_type ~ .,
@@ -399,3 +413,5 @@ svm_predict <- predict(svm_model, newdata = test.data)
 
 # Evalúa el rendimiento del modelo
 confusionMatrix(data = svm_predict, reference = test.data$sample_type)
+
+
